@@ -1,0 +1,127 @@
+/* Shared page rhythm: content column, page header, sections, card grids and form fields. */
+
+.main-content {
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    padding: calc(var(--shell-bar-height) + 1px + var(--page-gap)) var(--content-padding-x) var(--space-6);
+}
+
+@media (max-width: 991.98px) {
+    .main-content {
+        padding-top: calc(var(--shell-bar-height) + 1px + var(--space-4));
+    }
+}
+
+/* Page header */
+.topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.main-content > .topbar {
+    margin-bottom: var(--page-gap);
+}
+
+.page-title {
+    margin: 0 0 var(--space-1);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 1.85rem);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+.page-sub {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-soft);
+}
+
+.row.g-2,
+.row.g-3 {
+    --bs-gutter-x: var(--grid-gap);
+    --bs-gutter-y: var(--grid-gap);
+}
+
+/* Bootstrap's .mb-3 is used both for page sections and for form fields. */
+.mb-3 {
+    margin-bottom: var(--form-gap) !important;
+}
+
+.main-content > .mb-3,
+.main-content > .page-stack > .mb-3 {
+    margin-bottom: var(--page-gap) !important;
+}
+
+label {
+    margin-bottom: var(--space-2);
+    line-height: 1.4;
+}
+
+.d-flex.gap-2 {
+    gap: var(--space-3) !important;
+}
+
+.min-w-0,
+.min-width-0 {
+    min-width: 0;
+}
+
+.flex-1 {
+    flex: 1 1 0%;
+}
+
+/* Text-heavy pages keep a comfortable reading width. */
+.page-narrow {
+    max-width: 60rem;
+}
+
+@media (max-width: 575.98px) {
+    .page-title {
+        font-size: 1.35rem;
+        margin-bottom: 2px;
+    }
+
+    .page-sub {
+        font-size: 0.82rem;
+        line-height: 1.45;
+    }
+
+    .tk-header > .btn,
+    .nt-header > .btn,
+    .topbar > .btn,
+    .topbar > .d-flex {
+        width: 100%;
+    }
+
+    .topbar > .d-flex > .btn {
+        flex: 1 1 0%;
+    }
+
+    .sch-add-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .btn-sm,
+    .form-control,
+    .form-select {
+        font-size: var(--input-font-size);
+    }
+
+    .section-title,
+    .dash-section-title {
+        font-size: 0.8rem;
+    }
+
+    .table-responsive,
+    .overflow-auto {
+        -webkit-overflow-scrolling: touch;
+    }
+}

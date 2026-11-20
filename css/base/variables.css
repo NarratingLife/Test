@@ -1,0 +1,100 @@
+:root {
+    --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    --space-1: 0.25rem;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --radius-lg: 8px;
+    --radius-md: 6px;
+    --radius-sm: 4px;
+    --radius-pill: 999px;
+    --ease: cubic-bezier(.22,.9,.35,1);
+    /* Slower, more even ramp than --ease — for animations that cover real
+       screen distance (like the theme-switch circle) rather than a small
+       UI element, where --ease's fast-start/long-tail reads as a flick. */
+    --ease-reveal: cubic-bezier(.45,0,.2,1);
+    --transition-fast: .12s var(--ease);
+    --transition: .18s var(--ease);
+    --success: #1F9254;
+    --warning: #B45309;
+    --danger: #D6433C;
+    --info: #2D6CDF;
+    --on-accent: #FFFFFF;
+    --accent: 36,87,214;
+    --accent-2: 26,66,169;
+
+    --space-7: 2.5rem;
+    --space-8: 3rem;
+    --shell-bar-height: 3.75rem;
+    --content-max-width: 80rem;
+    --content-padding-x: 1.5rem;
+
+    --sidebar-width: 15.75rem;
+    --sidebar-padding-x: 0.875rem;
+    --sidebar-item-padding-y: 0.4rem;
+    --sidebar-item-padding-x: 0.625rem;
+    --sidebar-item-gap: 0.625rem;
+
+    --page-gap: var(--space-5);
+    --grid-gap: var(--space-4);
+    --form-gap: var(--space-4);
+    --title-gap: var(--space-3);
+
+    --card-pad: 1.5rem;
+    --card-pad-md: 1.25rem;
+    --card-pad-sm: 1rem;
+    --card-pad-xs: 0.75rem;
+
+    --btn-height: 2.375rem;
+    --btn-height-sm: 2rem;
+    --btn-height-lg: 2.625rem;
+    --btn-radius: var(--radius-sm);
+    --btn-radius-sm: 4px;
+    --btn-radius-lg: var(--radius-sm);
+    --btn-gap: 0.5rem;
+    --btn-padding-x: 1rem;
+    --btn-padding-x-sm: 0.75rem;
+    --btn-padding-x-lg: 1.25rem;
+    --btn-font-size: 0.84rem;
+    --btn-font-size-sm: 0.78rem;
+    --btn-font-size-lg: 0.9rem;
+
+    --icon-btn-size: 2.375rem;
+    --icon-btn-size-sm: 2rem;
+
+    --icon-size-sm: 1rem;
+    --icon-size-md: 1.125rem;
+    --icon-size-lg: 1.375rem;
+
+    --input-height: 2.375rem;
+    --input-radius: var(--radius-sm);
+    --input-font-size: .84rem;
+    --checkbox-size: 1.05rem;
+
+    --menu-btn-size: 2.375rem;
+    --logo-box-size: 2.375rem;
+
+    --layer-popover: 60;
+    --layer-header: 65;
+    --layer-modal-backdrop: 1050;
+    --layer-modal: 1055;
+    --layer-nav-drawer: 1200;
+    --layer-drawer-popover: 1210;
+
+    --focus-ring-color: rgba(var(--accent), 0.45);
+    --focus-ring: 0 0 0 3px var(--focus-ring-color);
+}
+
+@media (max-width: 575.98px) {
+    :root {
+        --page-gap: var(--space-4);
+        --grid-gap: var(--space-3);
+        --form-gap: var(--space-3);
+        --card-pad: 1.25rem;
+        --card-pad-md: 1rem;
+    }
+}

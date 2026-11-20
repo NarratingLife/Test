@@ -1,0 +1,747 @@
+/* Top bar: brand on the left; profile circle + sidebar toggle on the right. */
+
+/* position: fixed instead of sticky — deliberately. */
+.shell-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--layer-header);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--shell-bar-height);
+    padding: var(--space-3) var(--content-padding-x);
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 992px) {
+    .shell-bar {
+        left: var(--sidebar-width);
+    }
+}
+
+.shell-bar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+/* Dynamic page title — the current page's name, kept to one line. */
+.shell-page-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.2;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+@media (min-width: 992px) {
+    .shell-bar-left [data-sidebar-toggle] {
+        display: none;
+    }
+}
+
+.shell-bar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+/* Every control on the right (notification/inbox icons, profile avatar) keeps its own */
+.shell-bar-right > * {
+    flex: 0 0 auto;
+}
+
+/* Notification / inbox icon buttons — outlined box at rest (like GitHub's */
+.header-panel-wrap {
+    position: relative;
+}
+
+.shell-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-btn-size-sm);
+    height: var(--icon-btn-size-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-soft);
+    font-size: var(--icon-size-sm);
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.notification-count {
+    position: absolute;
+    top: -0.15rem;
+    right: -0.2rem;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    padding: 0 0.22rem;
+    border: 2px solid var(--nav-bg);
+    border-radius: var(--radius-pill);
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 0.85rem;
+    text-align: center;
+}
+
+.notification-count[hidden] {
+    display: none;
+}
+
+.shell-icon-btn:hover,
+.shell-icon-btn[aria-expanded="true"] {
+    background: var(--surface-2);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.header-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: var(--layer-popover);
+    width: min(20rem, calc(100vw - 2rem));
+    max-height: min(26rem, calc(100vh - 6rem));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--elevated);
+    box-shadow: var(--shadow);
+}
+
+.header-panel[hidden] {
+    display: none;
+}
+
+/* Row list inside either popup — same vertical rhythm whether it's holding */
+.header-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.header-panel-title {
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+
+/* Shared row rhythm for both popups: the notification panel renders plain */
+.header-panel-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: 0.5rem var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.header-panel-item:hover,
+.header-panel-item:focus-visible {
+    background: var(--surface-2);
+}
+
+.header-panel-item.is-unread .header-panel-item-title {
+    font-weight: 700;
+}
+
+.header-panel-item.is-read .header-panel-dot {
+    background: var(--border);
+}
+
+.header-panel-footer {
+    display: block;
+    margin-top: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--border);
+    color: rgb(var(--accent));
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+}
+
+.header-panel-footer:hover,
+.header-panel-footer:focus-visible {
+    color: var(--text);
+    background: var(--surface-2);
+}
+
+.header-panel-dot {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgb(var(--accent));
+}
+
+.header-panel-dot.is-overdue {
+    background: var(--danger);
+}
+
+.header-panel-item-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.header-panel-item-title {
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header-panel-item-sub {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+}
+
+.header-panel-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-5) var(--space-3);
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 0.84rem;
+}
+
+.header-panel-empty i {
+    font-size: 1.3rem;
+    margin-bottom: var(--space-1);
+}
+
+.header-panel-empty span {
+    font-size: 0.74rem;
+}
+
+.profile-trigger-circle {
+    padding: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+}
+
+.shell-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text);
+    font-weight: 700;
+    text-decoration: none;
+    margin-right: var(--space-2);
+}
+
+.shell-brand small {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--text-faint);
+}
+
+/* Topbar controls: theme switch + sidebar toggle, grouped on the right */
+
+.topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
+}
+
+.theme-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+}
+
+.theme-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-faint);
+    font-size: 0.9rem;
+}
+
+.theme-switch-btn:hover {
+    color: var(--text);
+}
+
+.theme-switch-btn[aria-checked="true"] {
+    background: rgb(var(--accent));
+    color: var(--on-accent);
+    box-shadow: none;
+}
+
+.profile-menu {
+    margin-left: 0;
+}
+
+.shell-brand .dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--logo-box-size);
+    height: var(--logo-box-size);
+    font-size: 1.1rem;
+    border-radius: var(--btn-radius-sm);
+    background: rgb(var(--accent));
+    color: var(--on-accent);
+    box-shadow: none;
+}
+
+.shell-crumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    font-size: 0.82rem;
+    color: var(--text-faint);
+}
+
+.shell-crumbs i {
+    font-size: 0.65rem;
+}
+
+.shell-crumb-current {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* Profile menu */
+
+.profile-menu {
+    position: relative;
+}
+
+.profile-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.5rem;
+    padding: 0.25rem 0.6rem 0.25rem 0.3rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 500;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.profile-trigger:hover,
+.profile-trigger[aria-expanded="true"] {
+    background: var(--surface-2);
+    border-color: var(--border);
+}
+
+/* The avatar-only trigger (student header avatar, admin header avatar) must stay a */
+.profile-trigger.profile-trigger-circle {
+    padding: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    min-height: 0;
+}
+
+.profile-caret {
+    font-size: 0.65rem;
+    color: var(--text-faint);
+}
+
+.profile-avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: rgb(var(--accent));
+    color: var(--on-accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    overflow: hidden;
+    object-fit: cover;
+}
+
+/* object-fit on .profile-avatar itself only affects the element if it IS an */
+.profile-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-lg {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+}
+
+.profile-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 60;
+    width: min(18rem, calc(100vw - 2rem));
+    padding: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--elevated);
+    box-shadow: var(--shadow);
+}
+
+.profile-panel[hidden] {
+    display: none;
+}
+
+/* The sidebar footer's three-dot menu reuses .profile-panel's look, but is */
+.sidebar-profile-panel {
+    position: fixed;
+    top: auto;
+    right: auto;
+    width: min(14rem, calc(100vw - 2rem));
+    z-index: var(--layer-drawer-popover);
+}
+
+/* Current-semester info card (header avatar popup), above the theme selector. */
+.profile-panel-section-semester {
+    padding: var(--space-2) 0;
+}
+.profile-panel-section-semester:empty {
+    padding: 0;
+}
+
+.shell-semester-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+}
+
+.shell-semester-info {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.shell-semester-name {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shell-semester-dates {
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shell-semester-status {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--success) 16%, transparent);
+    color: var(--success);
+    border: 1px solid color-mix(in srgb, var(--success) 40%, transparent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.shell-semester-status i {
+    font-size: 0.72rem;
+}
+
+/* Logout row, shared by the header popup and the sidebar footer menu — same */
+.profile-item-btn {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    appearance: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.profile-item-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.profile-item-danger {
+    color: var(--danger);
+}
+
+.profile-item-danger:hover,
+.profile-item-danger:focus-visible {
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: var(--danger);
+}
+
+.profile-panel-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    min-width: 0;
+}
+
+/* Name + email column: fixed to the space left by the avatar, never grows */
+.profile-panel-id {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
+}
+
+.profile-panel-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.profile-panel-sub {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.profile-panel-section {
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--border);
+}
+
+.profile-panel-label {
+    padding: 0 var(--space-3) var(--space-2);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+
+.profile-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 2.5rem;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    font-size: 0.86rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.profile-item:hover,
+.profile-item:focus-visible {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.profile-item i {
+    width: 1.1rem;
+    text-align: center;
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+}
+
+.theme-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 3.25rem;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.theme-option:hover {
+    background: var(--surface-2);
+}
+
+.theme-option[aria-checked="true"] {
+    border-color: rgb(var(--accent));
+    background: rgba(var(--accent), 0.12);
+    color: var(--text);
+}
+
+/* Sidebar toggle: sits directly on the header surface, no box/background — just the icon. */
+.shell-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    font-size: 1.25rem;
+}
+
+.shell-menu-btn i {
+    font-size: 1.25rem;
+}
+
+.shell-menu-btn:hover,
+.shell-menu-btn[aria-expanded="true"] {
+    background: var(--surface-2);
+    color: rgb(var(--accent));
+}
+
+.shell-crumb-current {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.shell-crumb-current i {
+    font-size: 0.9rem;
+    color: rgb(var(--accent));
+}
+
+@media (max-width: 991.98px) {
+    .shell-crumbs {
+        display: none;
+    }
+
+    .shell-bar {
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .theme-switch-btn {
+        width: 1.8rem;
+        height: 1.8rem;
+    }
+
+    .shell-bar-right {
+        gap: var(--space-2);
+    }
+
+    .shell-menu-btn,
+    .profile-trigger-circle,
+    .profile-trigger.profile-trigger-circle {
+        width: 2.125rem;
+        height: 2.125rem;
+    }
+
+    .shell-icon-btn {
+        width: 1.7rem;
+        height: 1.7rem;
+        font-size: 0.88rem;
+    }
+
+    .shell-page-title {
+        font-size: 0.92rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    :root {
+        --content-padding-x: 1rem;
+    }
+
+    .profile-name,
+    .profile-caret {
+        display: none;
+    }
+
+    .profile-trigger {
+        padding: 0.2rem;
+    }
+}
+
+.shell-semester {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid rgba(var(--accent), 0.3);
+    border-radius: var(--radius-pill);
+    background: rgba(var(--accent), 0.08);
+    color: var(--text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.shell-semester + .profile-menu {
+    margin-left: 0;
+}
+
+@media (max-width: 575.98px) {
+    .shell-semester {
+        display: none;
+    }
+}

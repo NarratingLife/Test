@@ -1,0 +1,184 @@
+/* utility */
+
+.text-soft {
+    color: var(--text-soft)!important;
+}
+
+.text-faint {
+    color: var(--text-faint)!important;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+    border: none;
+}
+
+.scroll-x {
+    overflow-x: auto;
+}
+
+.grabbable::-webkit-scrollbar {
+    display: none;
+}
+
+/* fade/slide animations */
+
+.fade-in {
+    animation: fadeIn .5s var(--ease);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stagger > * {
+    animation: fadeIn .45s var(--ease) both;
+}
+
+.stagger > *:nth-child(1) {
+    animation-delay: .03s;
+}
+
+.stagger > *:nth-child(2) {
+    animation-delay: .07s;
+}
+
+.stagger > *:nth-child(3) {
+    animation-delay: .11s;
+}
+
+.stagger > *:nth-child(4) {
+    animation-delay: .15s;
+}
+
+.stagger > *:nth-child(5) {
+    animation-delay: .19s;
+}
+
+.stagger > *:nth-child(6) {
+    animation-delay: .23s;
+}
+
+/* skeleton */
+
+.skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, rgba(var(--accent),.12) 37%, var(--surface-2) 63%);
+    background-size: 400% 100%;
+    animation: sk 1.4s ease infinite;
+    border-radius: 4px;
+}
+
+@keyframes sk {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: .001s !important;
+        transition-duration: .001s !important;
+    }
+}
+
+/* confetti */
+
+.confetti-piece {
+    position: fixed;
+    top: -10px;
+    width: 8px;
+    height: 14px;
+    z-index: 9998;
+    pointer-events: none;
+    border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grade-trend-svg,
+    .att-absence-row,
+    .att-subject-breakdown-card,
+    .att-log-row,
+    .grade-card,
+    .grade-pass-badge {
+        transition: none !important;
+        animation: none !important;
+    }
+    .progress-bar {
+        transition: none !important;
+    }
+}
+
+/* Smooth theme switch: animate surfaces instead of flickering when the
+   data-theme attribute changes. Gated by the same motion preferences as
+   everything else, and only active for the brief window JS toggles it.
+   This is the fallback path for browsers without the View Transitions API
+   (see theme-switch-reveal below for the primary, nicer path). */
+@media (prefers-reduced-motion: no-preference) {
+    html.theme-transition:not([data-motion="reduced"]) *,
+    html.theme-transition:not([data-motion="reduced"]) *::before,
+    html.theme-transition:not([data-motion="reduced"]) *::after {
+        transition: background-color .32s var(--ease), color .32s var(--ease),
+            border-color .32s var(--ease), box-shadow .32s var(--ease),
+            fill .32s var(--ease), stroke .32s var(--ease) !important;
+    }
+}
+
+/* Primary theme-switch animation (supporting browsers): the new theme washes
+   in as a soft circle anchored at --theme-switch-x/-y (the point the person
+   tapped), growing to --theme-switch-radius. No cross-fade/ghosting on the
+   old frame — it just sits still while the new one reveals over it, which
+   reads as a clean "paint" rather than a flash.
+   Timing note: var(--ease) is a snappy micro-interaction curve (~90% of the
+   distance covered in the first ~20% of the duration) — fine for a button,
+   but for a radius that has to sweep the whole screen it meant the circle
+   was already brushing past the viewport edges almost immediately, then
+   crawling through its last few percent for the rest of the animation. That
+   mismatch between "edge reached" and "animation still running" is what
+   read as a flick. --ease-reveal grows the radius evenly across the full
+   duration instead, so the edge arrives in step with the motion. */
+@media (prefers-reduced-motion: no-preference) {
+    html.theme-switch-reveal::view-transition-group(root) {
+        animation-duration: .6s;
+    }
+    html.theme-switch-reveal::view-transition-old(root) {
+        animation: none;
+    }
+    html.theme-switch-reveal::view-transition-new(root) {
+        animation: theme-switch-reveal-grow .6s var(--ease-reveal, cubic-bezier(.45, 0, .2, 1));
+        animation-fill-mode: both;
+        will-change: clip-path;
+    }
+    @keyframes theme-switch-reveal-grow {
+        from {
+            clip-path: circle(0px at var(--theme-switch-x, 50%) var(--theme-switch-y, 50%));
+        }
+        to {
+            clip-path: circle(var(--theme-switch-radius, 150%) at var(--theme-switch-x, 50%) var(--theme-switch-y, 50%));
+        }
+    }
+}
+
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+}
+
+[data-density="compact"] .card-pad {
+    padding: 12px;
+}

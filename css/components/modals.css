@@ -1,0 +1,445 @@
+/* modal */
+
+.modal {
+    z-index: var(--layer-modal);
+}
+
+.modal-backdrop {
+    z-index: var(--layer-modal-backdrop);
+}
+
+.modal-content {
+    position: relative;
+    --bs-modal-bg: var(--elevated);
+    --bs-modal-color: var(--text);
+    --bs-modal-border-color: var(--border);
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    box-shadow: var(--shadow);
+}
+
+.modal-title {
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-title i {
+    flex-shrink: 0;
+    margin: 0 !important;
+}
+
+.modal-content label {
+    color: var(--text-soft);
+}
+
+.modal-content .glass {
+    box-shadow: none;
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--border);
+}
+
+.btn-close,
+.modal-close-floating {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--menu-btn-size);
+    height: var(--menu-btn-size);
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    background-image: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-soft);
+    opacity: 1;
+    filter: none;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    cursor: pointer;
+}
+
+.btn-close::before,
+.modal-close-floating::before {
+    content: "";
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23fff' d='M3.28 2.22a.75.75 0 0 0-1.06 1.06L6.94 8l-4.72 4.72a.75.75 0 1 0 1.06 1.06L8 9.06l4.72 4.72a.75.75 0 0 0 1.06-1.06L9.06 8l4.72-4.72a.75.75 0 0 0-1.06-1.06L8 6.94 3.28 2.22Z'/%3E%3C/svg%3E") center / 1rem no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23fff' d='M3.28 2.22a.75.75 0 0 0-1.06 1.06L6.94 8l-4.72 4.72a.75.75 0 1 0 1.06 1.06L8 9.06l4.72 4.72a.75.75 0 0 0 1.06-1.06L9.06 8l4.72-4.72a.75.75 0 0 0-1.06-1.06L8 6.94 3.28 2.22Z'/%3E%3C/svg%3E") center / 1rem no-repeat;
+}
+
+.btn-close:hover,
+.modal-close-floating:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+}
+
+.btn-close:focus-visible,
+.modal-close-floating:focus-visible {
+    color: var(--text);
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+}
+
+.modal-header .btn-close {
+    margin-left: auto;
+}
+
+.modal-close-floating {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+}
+
+/* ==========================================================================
+   Modal layout standard (single source for every modal)
+   Header / body / footer rhythm, labels, form grid, action row and the
+   small-screen behaviour. Page CSS should only add content-specific rules.
+   ========================================================================== */
+
+.modal {
+    --modal-pad-x: 18px;
+    --modal-pad-y: 16px;
+    --modal-gap: .75rem;
+}
+
+.modal-header {
+    align-items: center;
+    gap: 12px;
+    padding: 14px var(--modal-pad-x);
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+    min-width: 0;
+    margin: 0;
+    font-size: .96rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.modal-body,
+.modal-body.card-pad {
+    padding: var(--modal-pad-y) var(--modal-pad-x);
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-content.card-pad {
+    padding: var(--modal-pad-y) var(--modal-pad-x);
+}
+
+.modal-footer {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 12px var(--modal-pad-x);
+    border-top: 1px solid var(--border);
+}
+
+.modal-footer > * {
+    margin: 0;
+}
+
+/* In-body titles (modals whose header lives inside .modal-body) */
+.modal-body > h5:first-child,
+.modal-content.card-pad > h5:first-child,
+.modal-content > .modal-header .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-body > h5:first-child,
+.modal-content.card-pad > h5:first-child {
+    margin: 0 40px var(--modal-gap) 0;
+    font-size: .96rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+/* Form grid: same gutters in every modal */
+.modal-body .row {
+    --bs-gutter-x: var(--modal-gap);
+    --bs-gutter-y: var(--modal-gap);
+}
+
+/* Labels: always above the control, one style everywhere */
+.modal-body .form-label,
+.modal-body label:not([class]) {
+    display: block;
+    margin-bottom: 6px;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-soft);
+}
+
+.modal-body textarea.form-control {
+    height: auto;
+    min-height: 5rem;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.modal-body .form-check-input {
+    flex-shrink: 0;
+    background-color: var(--surface-2);
+    border-color: var(--border);
+}
+
+.modal-body .form-check-input:checked {
+    background-color: rgb(var(--accent));
+    border-color: rgb(var(--accent));
+}
+
+.modal-body .form-check-input:focus-visible {
+    border-color: rgb(var(--accent));
+    box-shadow: 0 0 0 .2rem rgba(var(--accent), .25);
+}
+
+/* Validation / error text */
+.modal-body .invalid-feedback,
+.modal-body .sch-subject-error {
+    margin-top: 4px;
+    font-size: .76rem;
+}
+
+/* Primary action row. Sticks to the bottom of a scrolling modal so Save is
+   always reachable, and sits flush with the modal edges. */
+.modal-body > .modal-actions {
+    position: sticky;
+    bottom: calc(-1 * var(--modal-pad-y));
+    z-index: 3;
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin: var(--modal-gap) calc(-1 * var(--modal-pad-x)) calc(-1 * var(--modal-pad-y));
+    padding: 12px var(--modal-pad-x);
+    background: var(--elevated);
+    border-top: 1px solid var(--border);
+}
+
+.modal-actions > .btn {
+    margin: 0;
+}
+
+.modal-actions > .btn-accent {
+    flex: 1 1 auto;
+}
+
+.modal-actions > .btn:not(.btn-accent) {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 575.98px) {
+    .modal {
+        --modal-pad-x: 14px;
+        --modal-pad-y: 14px;
+    }
+
+    .modal-dialog {
+        margin: var(--space-3);
+    }
+
+    .modal-dialog-scrollable .modal-content {
+        max-height: calc(100dvh - 2 * var(--space-3));
+    }
+
+    .modal-footer > .btn {
+        flex: 1 1 0%;
+    }
+}
+
+/* dropdown */
+
+.dropdown-menu {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    padding: 6px;
+    min-width: 190px;
+}
+
+.dropdown-item {
+    color: var(--text-soft);
+    border-radius: 4px;
+    font-size: .85rem;
+    font-weight: 600;
+    padding: 8px 10px;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.dropdown-item.text-danger:hover {
+    background: rgba(251,113,133,.14);
+    color: #fb7185!important;
+}
+
+.dropdown-divider {
+    border-color: var(--border);
+    margin: 6px 0;
+}
+
+.modal-backdrop.show {
+    opacity: .6;
+}
+
+/* custom select (replaces native <select> rendering) */
+
+.custom-select {
+    position: relative;
+}
+
+.cs-trigger {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--surface) var(--select-caret, none);
+}
+
+.cs-trigger::after {
+    display: inline-block;
+    margin-left: auto;
+    content: "";
+    width: .5em;
+    height: .5em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    opacity: .55;
+    flex-shrink: 0;
+}
+
+.cs-trigger.disabled,
+.cs-trigger:disabled {
+    opacity: .55;
+    pointer-events: none;
+}
+
+select.cs-native-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.cs-menu {
+    min-width: 0;
+    max-width: calc(100vw - 1rem);
+    max-height: min(15rem, 45vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+}
+
+.cs-option {
+    display: block;
+    width: 100%;
+    overflow-wrap: anywhere;
+    text-align: left;
+    white-space: normal;
+    font-family: var(--font-body);
+    font-size: var(--input-font-size);
+    font-weight: 400;
+}
+
+.cs-option.active {
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 400;
+}
+
+.cs-option.active::after {
+    content: "\2713";
+    float: right;
+    opacity: .8;
+}
+
+/* University Event Details modal (#univEventModal) — real .modal-header +
+   .modal-body, matching every other well-designed modal in the app; filled
+   by assets/js/utils/event-details.js and shared as-is by both the student
+   Calendar (click a published event) and the admin University Events
+   page's "View" action. */
+.uev-detail-head {
+    flex-wrap: nowrap;
+}
+
+.uev-detail-head .modal-title {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow-wrap: anywhere;
+}
+
+/* Title / Details / Date / Status rows, as one 3-column grid (label, colon,
+   value) rather than separate per-row flex boxes. Each row is a `display:
+   contents` wrapper, so its 3 spans become direct children of this grid
+   instead of a nested box — that's what makes the label column (and so the
+   colon column right after it) size to the single longest label across
+   every row, lining every colon up in one vertical column regardless of
+   how short "Date" or how long "Details" is. */
+.uev-detail-dl {
+    display: grid;
+    grid-template-columns: max-content max-content 1fr;
+    row-gap: 12px;
+    column-gap: 10px;
+    font-size: .88rem;
+}
+
+.uev-detail-row {
+    display: contents;
+}
+
+.uev-detail-label {
+    color: var(--text-faint);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.uev-detail-colon {
+    color: var(--text-faint);
+    font-weight: 600;
+}
+
+.uev-detail-value {
+    min-width: 0;
+    color: var(--text-soft);
+    overflow-wrap: anywhere;
+}
+
+.uev-detail-value .status-badge {
+    vertical-align: middle;
+}
+
+.uev-detail-sep {
+    margin: 0 .35em;
+    color: var(--text-faint);
+}
