@@ -1,0 +1,44 @@
+{
+  "redirects": [
+    { "source": "/(attendance|calendar|curriculum|grades|notes|schedule|settings|syllabus|syllabus-view|tasks|university|wallpaper)\\.html", "destination": "/pages/app/$1.html", "permanent": false },
+    { "source": "/(login|register|pending|verify|forgot-password|reset-password)\\.html", "destination": "/pages/auth/$1.html", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/service-worker.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }]
+    },
+    {
+      "source": "/pages/auth/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/pages/app/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "private, no-store" }]
+    },
+    {
+      "source": "/pages/admin/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "private, no-store" }]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+        }
+      ]
+    }
+  ]
+}
