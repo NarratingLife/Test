@@ -1,0 +1,484 @@
+// Admin data service (ES module). Every read/write goes through Supabase and is subject to
+
+import { getSupabase } from '../core/supabase-client.js';
+
+function fail(message) {
+    return { ok: false, message };
+}
+
+function ok(data) {
+    return { ok: true, data };
+}
+
+function readableDbError(error) {
+    if (!error) return 'Something went wrong. Please try again.';
+    if (error.code === '42501') return 'You are not authorized to perform this action.';
+    if (error.code === 'P0002') return error.message || 'That record could not be found.';
+    if (error.code === '22023') return error.message || 'That value is not valid.';
+    return 'The request could not be completed. Please try again.';
+}
+
+export const AdminService = {
+    async verifyAdminAccess() {
+        try {
+            const supabase = getSupabase();
+            const { data: sessionData } = await supabase.auth.getSession();
+
+            if (!sessionData.session) return fail('Not signed in.');
+
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('id, role, account_status, full_name')
+                .eq('id', sessionData.session.user.id)
+                .maybeSingle();
+
+            if (error || !profile) return fail('Could not verify your account.');
+            if (profile.role !== 'admin' || profile.account_status !== 'approved') {
+                return fail('This page is restricted to approved administrators.');
+            }
+
+            return ok(profile);
+        } catch (error) {
+            return fail('Could not verify your account.');
+        }
+    },
+
+    async getDashboardStats() {
+        try {
+            const supabase = getSupabase();
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('account_status, created_at, full_name, course, school, year_level, role')
+                .order('created_at', { ascending: false });
+
+            if (error) return fail(readableDbError(error));
+
+            const counts = { total: data.length, pending: 0, approved: 0, rejected: 0, suspended: 0 };
+            data.forEach(row => {
+                if (counts[row.account_status] !== undefined) counts[row.account_status] += 1;
+            });
+
+            return ok({ counts, recent: data.slice(0, 8), all: data });
+        } catch (error) {
+            return fail('Could not load dashboard statistics.');
+        }
+    },
+
+    async listAccounts({ status = 'all', search = '', dateFrom = '', dateTo = '', sort = 'created_desc', page = 1, pageSize = 20 } = {}) {
+        try {
+            const supabase = getSupabase();
+            let query = supabase
+                .from('profiles')
+                .select('id, email, full_name, course, year_level, school, role, account_status, signup_provider, created_at, reviewed_at, rejection_reason', { count: 'exact' });
+
+            if (status !== 'all') query = query.eq('account_status', status);
+            if (search.trim()) {
+                const term = search.trim().replace(/[%_]/g, '');
+                query = query.or(`full_name.ilike.%${term}%,course.ilike.%${term}%,email.ilike.%${term}%`);
+            }
+            if (dateFrom) query = query.gte('created_at', new Date(`${dateFrom}T00:00:00`).toISOString());
+            if (dateTo) query = query.lte('created_at', new Date(`${dateTo}T23:59:59.999`).toISOString());
+
+            const [sortField, sortDir] = {
+                created_desc: ['created_at', false],
+                created_asc: ['created_at', true],
+                name_asc: ['full_name', true],
+                name_desc: ['full_name', false],
+            }[sort] || ['created_at', false];
+            query = query.order(sortField, { ascending: sortDir, nullsFirst: sortDir });
+
+            const from = (page - 1) * pageSize;
+            const to = from + pageSize - 1;
+            query = query.range(from, to);
+
+            const { data, error, count } = await query;
+
+            if (error) return fail(readableDbError(error));
+
+            return ok({ rows: data, total: count ?? data.length });
+        } catch (error) {
+            return fail('Could not load accounts.');
+        }
+    },
+
+    async getAccount(id) {
+        try {
+            const supabase = getSupabase();
+            const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+
+            if (error || !data) return fail('Account not found.');
+
+            return ok(data);
+        } catch (error) {
+            return fail('Could not load that account.');
+        }
+    },
+
+    async reviewAccount({ targetUserId, newStatus, reason = null }) {
+        try {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('set_account_status', {
+                target_user_id: targetUserId,
+                new_status: newStatus,
+                reason,
+            });
+
+            if (error) return fail(readableDbError(error));
+
+            return ok({});
+        } catch (error) {
+            return fail('Could not update that account.');
+        }
+    },
+
+    async deleteAccountPermanently({ targetUserId, reason = null }) {
+        try {
+            const supabase = getSupabase();
+            const { data, error } = await supabase.functions.invoke('admin-delete-account', {
+                body: { target_user_id: targetUserId, reason },
+            });
+
+            if (error) {
+                let message = error.message || 'Could not delete that account.';
+                try {
+                    if (error.context && typeof error.context.json === 'function') {
+                        const body = await error.context.json();
+                        if (body?.error) message = body.error;
+                    }
+                } catch { /* fall back to error.message above */ }
+                return fail(message);
+            }
+
+            if (data && data.ok !== true) {
+                return fail(data?.error || 'Could not delete that account.');
+            }
+
+            return ok({});
+        } catch (error) {
+            return fail('Could not reach the deletion service. Please try again.');
+        }
+    },
+
+    async listApprovedStudents({ search = '' } = {}) {
+        try {
+            const supabase = getSupabase();
+            let query = supabase
+                .from('profiles')
+                .select('id, full_name, email, course, school')
+                .eq('role', 'student')
+                .eq('account_status', 'approved')
+                .order('full_name', { ascending: true })
+                .limit(500);
+
+            if (search.trim()) {
+                const term = search.trim().replace(/[%_]/g, '');
+                query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
+            }
+
+            const { data, error } = await query;
+            if (error) return fail(readableDbError(error));
+            return ok(data);
+        } catch (error) {
+            return fail('Could not load the student list.');
+        }
+    },
+
+    async sendMessage({ subject, body, category, recipientScope, studentIds = null }) {
+        try {
+            const supabase = getSupabase();
+            const { data, error } = await supabase.rpc('admin_send_message', {
+                p_subject: subject,
+                p_body: body,
+                p_category: category,
+                p_recipient_scope: recipientScope,
+                p_student_ids: studentIds,
+            });
+
+            if (error) return fail(readableDbError(error));
+            return ok({ id: data });
+        } catch (error) {
+            return fail('Could not send that message.');
+        }
+    },
+
+    async archiveMessage(messageId) {
+        try {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('admin_archive_message', { p_message_id: messageId });
+            if (error) return fail(readableDbError(error));
+            return ok({});
+        } catch (error) {
+            return fail('Could not archive that message.');
+        }
+    },
+
+    async listMessages({ search = '', category = 'all', dateFrom = '', dateTo = '', sort = 'sent_desc', page = 1, pageSize = 20 } = {}) {
+        try {
+            const supabase = getSupabase();
+            let query = supabase
+                .from('admin_messages')
+                .select('id, subject, body, category, recipient_scope, recipient_count, status, sent_at, created_at, deleted_at, sender:sender_id(full_name)', { count: 'exact' })
+                .is('deleted_at', null);
+
+            if (category !== 'all') query = query.eq('category', category);
+            if (search.trim()) {
+                const term = search.trim().replace(/[%_]/g, '');
+                query = query.or(`subject.ilike.%${term}%,body.ilike.%${term}%`);
+            }
+            if (dateFrom) query = query.gte('sent_at', new Date(`${dateFrom}T00:00:00`).toISOString());
+            if (dateTo) query = query.lte('sent_at', new Date(`${dateTo}T23:59:59.999`).toISOString());
+
+            query = query.order('sent_at', { ascending: sort === 'sent_asc' });
+
+            const from = (page - 1) * pageSize;
+            const to = from + pageSize - 1;
+            query = query.range(from, to);
+
+            const { data, error, count } = await query;
+            if (error) return fail(readableDbError(error));
+            return ok({ rows: data, total: count ?? data.length });
+        } catch (error) {
+            return fail('Could not load messages.');
+        }
+    },
+
+    async getMessage(id) {
+        try {
+            const supabase = getSupabase();
+            const { data: message, error: msgError } = await supabase
+                .from('admin_messages')
+                .select('id, subject, body, category, recipient_scope, recipient_count, status, sent_at, created_at, deleted_at, sender:sender_id(full_name)')
+                .eq('id', id)
+                .maybeSingle();
+
+            if (msgError || !message) return fail('Message not found.');
+
+            const { data: recipients, error: recError } = await supabase
+                .from('admin_message_recipients')
+                .select('student_id, read_at, student:student_id(full_name, email)')
+                .eq('message_id', id)
+                .order('created_at', { ascending: true });
+
+            if (recError) return fail(readableDbError(recError));
+
+            const readCount = recipients.filter(r => r.read_at).length;
+            return ok({ message, recipients, readCount, totalCount: recipients.length });
+        } catch (error) {
+            return fail('Could not load that message.');
+        }
+    },
+
+    async listTickets({ status = 'all', category = 'all', search = '', sort = 'created_desc', page = 1, pageSize = 20 } = {}) {
+        try {
+            const supabase = getSupabase();
+            let query = supabase
+                .from('support_tickets')
+                .select('id, ticket_ref, category, subject, description, status, created_at, updated_at, student:student_id(full_name, email)', { count: 'exact' });
+
+            if (status !== 'all') query = query.eq('status', status);
+            if (category !== 'all') query = query.eq('category', category);
+            if (search.trim()) {
+                const term = search.trim().replace(/[%_]/g, '');
+                query = query.or(`ticket_ref.ilike.%${term}%,subject.ilike.%${term}%`);
+            }
+
+            query = query.order('created_at', { ascending: sort === 'created_asc' });
+
+            const from = (page - 1) * pageSize;
+            const to = from + pageSize - 1;
+            query = query.range(from, to);
+
+            const { data, error, count } = await query;
+            if (error) return fail(readableDbError(error));
+
+            if (search.trim() && data.length === 0) {
+                const term = search.trim().replace(/[%_]/g, '');
+                let emailQuery = supabase
+                    .from('support_tickets')
+                    .select('id, ticket_ref, category, subject, description, status, created_at, updated_at, student:student_id!inner(full_name, email)', { count: 'exact' })
+                    .ilike('student.email', `%${term}%`);
+                if (status !== 'all') emailQuery = emailQuery.eq('status', status);
+                if (category !== 'all') emailQuery = emailQuery.eq('category', category);
+                emailQuery = emailQuery.order('created_at', { ascending: sort === 'created_asc' }).range(from, to);
+                const emailResult = await emailQuery;
+                if (!emailResult.error && emailResult.data.length) {
+                    return ok({ rows: emailResult.data, total: emailResult.count ?? emailResult.data.length });
+                }
+            }
+
+            return ok({ rows: data, total: count ?? data.length });
+        } catch (error) {
+            return fail('Could not load support tickets.');
+        }
+    },
+
+    async getTicket(id) {
+        try {
+            const supabase = getSupabase();
+            const { data: ticket, error: ticketError } = await supabase
+                .from('support_tickets')
+                .select('id, ticket_ref, category, subject, description, status, created_at, updated_at, student:student_id(full_name, email), updater:updated_by(full_name)')
+                .eq('id', id)
+                .maybeSingle();
+
+            if (ticketError || !ticket) return fail('Ticket not found.');
+
+            const { data: notes, error: notesError } = await supabase
+                .from('support_ticket_notes')
+                .select('id, note, created_at, admin:admin_id(full_name)')
+                .eq('ticket_id', id)
+                .order('created_at', { ascending: true });
+
+            if (notesError) return fail(readableDbError(notesError));
+
+            return ok({ ticket, notes });
+        } catch (error) {
+            return fail('Could not load that ticket.');
+        }
+    },
+
+    async setTicketStatus({ ticketId, newStatus, note = null }) {
+        try {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('admin_set_ticket_status', {
+                p_ticket_id: ticketId,
+                p_new_status: newStatus,
+                p_note: note,
+            });
+            if (error) return fail(readableDbError(error));
+            return ok({});
+        } catch (error) {
+            return fail('Could not update that ticket.');
+        }
+    },
+
+    async addTicketNote({ ticketId, note }) {
+        try {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('admin_add_ticket_note', { p_ticket_id: ticketId, p_note: note });
+            if (error) return fail(readableDbError(error));
+            return ok({});
+        } catch (error) {
+            return fail('Could not add that note.');
+        }
+    },
+
+    async getCommsStats() {
+        try {
+            const supabase = getSupabase();
+
+            const [messagesTotal, unreadTotal, ticketsTotal, ticketsOpen, recentMessages, recentTickets] = await Promise.all([
+                supabase.from('admin_messages').select('id', { count: 'exact', head: true }).is('deleted_at', null),
+                supabase.from('admin_message_recipients').select('id', { count: 'exact', head: true }).is('read_at', null),
+                supabase.from('support_tickets').select('id', { count: 'exact', head: true }),
+                supabase.from('support_tickets').select('id', { count: 'exact', head: true }).not('status', 'in', '(resolved,closed)'),
+                supabase.from('admin_messages').select('id, subject, category, recipient_count, sent_at').is('deleted_at', null).order('sent_at', { ascending: false }).limit(5),
+                supabase.from('support_tickets').select('id, ticket_ref, subject, status, created_at, student:student_id(full_name)').order('created_at', { ascending: false }).limit(5),
+            ]);
+
+            const firstError = [messagesTotal, unreadTotal, ticketsTotal, ticketsOpen, recentMessages, recentTickets]
+                .map(r => r.error).find(Boolean);
+            if (firstError) return fail(readableDbError(firstError));
+
+            return ok({
+                messagesTotal: messagesTotal.count ?? 0,
+                unreadTotal: unreadTotal.count ?? 0,
+                ticketsTotal: ticketsTotal.count ?? 0,
+                ticketsOpen: ticketsOpen.count ?? 0,
+                recentMessages: recentMessages.data || [],
+                recentTickets: recentTickets.data || [],
+            });
+        } catch (error) {
+            return fail('Could not load communications statistics.');
+        }
+    },
+
+    async listAuditLog({ page = 1, pageSize = 25 } = {}) {
+        try {
+            const supabase = getSupabase();
+            const from = (page - 1) * pageSize;
+            const to = from + pageSize - 1;
+
+            const { data, error, count } = await supabase
+                .from('admin_audit_log')
+                .select('id, actor_id, action, target_user_id, previous_status, new_status, reason, created_at, actor:actor_id(full_name), target:target_user_id(full_name)', { count: 'exact' })
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            if (error) return fail(readableDbError(error));
+
+            return ok({ rows: data, total: count ?? data.length });
+        } catch (error) {
+            return fail('Could not load the activity log.');
+        }
+    },
+
+    // University Events — centrally managed; students get read-only access
+    async listUniversityEvents() {
+        try {
+            const supabase = getSupabase();
+            const { data, error } = await supabase
+                .from('university_events')
+                .select('id, title, description, event_date, start_time, end_time, location, is_published, created_at, updated_at')
+                .order('event_date', { ascending: true })
+                .order('start_time', { ascending: true, nullsFirst: true });
+
+            if (error) return fail(readableDbError(error));
+            return ok({ rows: data });
+        } catch (error) {
+            return fail('Could not load university events.');
+        }
+    },
+
+    async createUniversityEvent({ title, description, eventDate, startTime, endTime, location, isPublished = true }) {
+        try {
+            const supabase = getSupabase();
+            const { data, error } = await supabase.rpc('admin_create_university_event', {
+                p_title: title,
+                p_description: description || null,
+                p_event_date: eventDate,
+                p_start_time: startTime || null,
+                p_end_time: endTime || null,
+                p_location: location || null,
+                p_is_published: isPublished,
+            });
+
+            if (error) return fail(readableDbError(error));
+            return ok({ id: data });
+        } catch (error) {
+            return fail('Could not create that event.');
+        }
+    },
+
+    async updateUniversityEvent({ id, title, description, eventDate, startTime, endTime, location, isPublished = true }) {
+        try {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('admin_update_university_event', {
+                p_id: id,
+                p_title: title,
+                p_description: description || null,
+                p_event_date: eventDate,
+                p_start_time: startTime || null,
+                p_end_time: endTime || null,
+                p_location: location || null,
+                p_is_published: isPublished,
+            });
+
+            if (error) return fail(readableDbError(error));
+            return ok({});
+        } catch (error) {
+            return fail('Could not update that event.');
+        }
+    },
+
+    async deleteUniversityEvent(id) {
+        try {
+            const supabase = getSupabase();
+            const { error } = await supabase.rpc('admin_delete_university_event', { p_id: id });
+            if (error) return fail(readableDbError(error));
+            return ok({});
+        } catch (error) {
+            return fail('Could not delete that event.');
+        }
+    },
+};
