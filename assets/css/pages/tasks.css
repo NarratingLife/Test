@@ -1566,7 +1566,7 @@
     font-weight: 600;
     line-height: 1.2;
     text-align: left;
-    overflow: hidden;
+    overflow: visible;
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
